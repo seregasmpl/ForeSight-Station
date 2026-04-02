@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ФОРСАЙТ-СТАНЦИЯ</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="entry-page">
+    <div class="stars"></div>
+    <div class="entry-container">
+        <div class="station-logo">
+            <div class="logo-circle">
+                <div class="logo-ring"></div>
+                <span class="logo-text">ФС</span>
+            </div>
+        </div>
+        <h1 class="station-title">ФОРСАЙТ-СТАНЦИЯ</h1>
+        <p class="station-subtitle">БОРТОВОЙ ПРОГНОСТИЧЕСКИЙ КОМПЛЕКС</p>
+
+        <div class="login-panel">
+            <label class="input-label">ПОЗЫВНОЙ ЭКИПАЖА:</label>
+            <div class="input-row">
+                <span class="prompt-symbol">&gt;</span>
+                <input type="text" id="session-code" class="code-input"
+                       placeholder="ЛУНА-01" autocomplete="off" autofocus>
+            </div>
+            <button id="join-btn" class="retro-btn" onclick="joinSession()">
+                ВОЙТИ НА БОРТ
+            </button>
+            <div id="error-msg" class="error-msg" style="display:none"></div>
+        </div>
+
+        <div class="admin-link">
+            <a href="/admin" class="subtle-link">Центр управления полётами</a>
+        </div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>

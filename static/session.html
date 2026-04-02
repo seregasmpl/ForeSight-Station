@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ФОРСАЙТ-СТАНЦИЯ — СЕССИЯ</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="session-page">
+    <div class="stars"></div>
+
+    <div id="session-badge" class="session-badge">
+        <span class="badge-label">ЭКИПАЖ</span>
+        <span id="badge-code" class="badge-code">---</span>
+    </div>
+
+    <header class="session-header">
+        <div class="mission-info">
+            <span class="mission-label">МИССИЯ:</span>
+            <span id="mission-topic" class="mission-topic">---</span>
+        </div>
+        <div id="role-indicator" class="role-indicator">
+            <span id="role-name" class="role-name">---</span>
+        </div>
+    </header>
+
+    <main class="chat-area" id="chat-area">
+        <div class="welcome-msg" id="welcome-msg">
+            <p>БОРТОВОЙ КОМПЬЮТЕР АКТИВИРОВАН</p>
+            <p>Задайте вопрос о будущем космоса к 2100 году.</p>
+            <p>Ваш консультант готов помочь подготовить аргументы для дебатов.</p>
+        </div>
+    </main>
+
+    <footer class="input-area">
+        <div class="input-row">
+            <span class="prompt-symbol">&gt; ЗАПРОС ЭКИПАЖА:</span>
+            <input type="text" id="question-input" class="question-input"
+                   placeholder="Введите ваш вопрос..." autocomplete="off">
+            <button id="send-btn" class="retro-btn send-btn" onclick="askQuestion()">
+                ОТПРАВИТЬ
+            </button>
+        </div>
+        <div id="loading-indicator" class="loading-indicator" style="display:none">
+            <span class="blink">БОРТОВОЙ КОМПЬЮТЕР ОБРАБАТЫВАЕТ ЗАПРОС</span>
+            <span class="dots"></span>
+        </div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

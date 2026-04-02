@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ФОРСАЙТ-СТАНЦИЯ — ЦУП</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="admin-page">
+    <div class="stars"></div>
+
+    <div id="pin-overlay" class="pin-overlay">
+        <div class="pin-panel">
+            <h2>ЦЕНТР УПРАВЛЕНИЯ ПОЛЁТАМИ</h2>
+            <p>ВВЕДИТЕ КОД ДОСТУПА:</p>
+            <div class="input-row">
+                <span class="prompt-symbol">&gt;</span>
+                <input type="password" id="pin-input" class="code-input"
+                       placeholder="****" autocomplete="off" autofocus>
+            </div>
+            <button class="retro-btn" onclick="adminLogin()">ДОСТУП</button>
+            <div id="pin-error" class="error-msg" style="display:none"></div>
+        </div>
+    </div>
+
+    <div id="dashboard" class="dashboard" style="display:none">
+        <header class="admin-header">
+            <h1>ЦЕНТР УПРАВЛЕНИЯ ПОЛЁТАМИ</h1>
+            <button class="retro-btn" onclick="createAllSessions()">СОЗДАТЬ ВСЕ СЕССИИ</button>
+            <button class="retro-btn" onclick="refreshDashboard()">ОБНОВИТЬ</button>
+        </header>
+
+        <div class="sessions-grid" id="sessions-grid"></div>
+
+        <div id="session-detail" class="session-detail" style="display:none">
+            <div class="detail-header">
+                <h2 id="detail-title">---</h2>
+                <button class="retro-btn small" onclick="closeDetail()">ЗАКРЫТЬ</button>
+            </div>
+            <div id="detail-history" class="detail-history"></div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
