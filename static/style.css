@@ -357,6 +357,20 @@ body {
 .admin-header h1 { font-size: 1.2rem; letter-spacing: 0.2em; color: var(--text-bright); flex: 1; }
 .admin-header .retro-btn { width: auto; padding: 0.5rem 1.2rem; font-size: 0.75rem; }
 
+.admin-instructions {
+    background: var(--bg-panel); border: 1px solid var(--border-panel); border-radius: var(--radius);
+    padding: 1.5rem; margin-bottom: 2rem; font-size: 0.8rem; line-height: 1.6;
+}
+.admin-instructions h3 { color: var(--opt-primary); letter-spacing: 0.15em; margin-bottom: 1rem; font-size: 0.9rem; }
+.admin-instructions ol { padding-left: 1.5rem; }
+.admin-instructions li { margin-bottom: 0.5rem; }
+.admin-instructions b { color: var(--text-bright); }
+.codes-table { width: 100%; margin-top: 1rem; border-collapse: collapse; font-size: 0.75rem; }
+.codes-table th { text-align: left; color: var(--opt-primary); padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border-panel); }
+.codes-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid rgba(42,58,92,0.4); }
+.codes-table td:nth-child(2) { color: var(--opt-primary); font-weight: bold; }
+.codes-table td:nth-child(3) { color: var(--pes-primary); font-weight: bold; }
+
 .sessions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
 
 .session-card {
