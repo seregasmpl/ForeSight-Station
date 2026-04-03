@@ -9,5 +9,6 @@ data/sessions.json.tmp
 debug_raw.txt
 *.png
 docs/superpowers/
+screenshots/
 *.bak
 conftest_backup.py

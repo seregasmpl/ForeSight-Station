@@ -1,0 +1,11 @@
+services:
+  foresight:
+    build: .
+    container_name: foresight-station
+    restart: unless-stopped
+    ports:
+      - "8004:8001"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
