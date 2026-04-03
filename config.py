@@ -1,12 +1,22 @@
 import os
 
+# Load .env if present
+_env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+
 # --- Server ---
 HOST = "0.0.0.0"
-PORT = 8000
+PORT = 8001
 
 # --- LLM ---
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "anthropic/claude-sonnet-4-20250514")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "google/gemini-3-flash-preview")
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 LLM_TEMPERATURE = 0.8
 LLM_TIMEOUT = 120.0

@@ -52,7 +52,7 @@ def chunk_texts(
 
 
 def build_fts_index(chunks: list[Chunk]) -> sqlite3.Connection:
-    db = sqlite3.connect(":memory:")
+    db = sqlite3.connect(":memory:", check_same_thread=False)
     db.execute(
         "CREATE VIRTUAL TABLE chunks_fts USING fts5(stemmed_text, tokenize='unicode61')"
     )

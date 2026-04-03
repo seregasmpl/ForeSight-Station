@@ -237,15 +237,55 @@ body {
 .chat-area {
     position: relative; z-index: 1;
     flex: 1; overflow-y: auto; padding: 1.5rem;
+    min-height: 0;
     display: flex; flex-direction: column; gap: 1.5rem;
 }
 
 .welcome-msg { text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 3rem 1rem; line-height: 2; }
 
-.qa-block { background: var(--bg-panel); border: 1px solid var(--border-panel); border-radius: var(--radius); overflow: hidden; }
-.qa-question { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-panel); font-size: 0.9rem; }
-.qa-question .prompt-symbol { margin-right: 0.5rem; }
-.qa-answer { padding: 1.5rem; }
+/* Chat bubbles */
+.chat-msg {
+    max-width: 88%;
+    display: flex;
+    flex-direction: column;
+}
+.chat-msg-user { align-self: flex-end; align-items: flex-end; }
+.chat-msg-ai   { align-self: flex-start; align-items: flex-start; }
+
+.bubble-user {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-panel);
+    border-radius: var(--radius) var(--radius) 4px var(--radius);
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+}
+.session-page.role-optimist .bubble-user {
+    border-color: var(--opt-dim);
+    color: var(--opt-primary);
+    box-shadow: 0 0 8px var(--opt-glow);
+}
+.session-page.role-pessimist .bubble-user {
+    border-color: var(--pes-dim);
+    color: var(--pes-primary);
+    box-shadow: 0 0 8px var(--pes-glow);
+}
+
+.bubble-ai {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-panel);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    padding: 1.2rem 1.5rem;
+    width: 100%;
+}
+
+.bubble-thinking {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-panel);
+    border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    padding: 0.7rem 1.2rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
 
 .section-block { margin-bottom: 1.5rem; }
 .section-block:last-child { margin-bottom: 0; }
@@ -259,7 +299,12 @@ body {
 .session-page.role-optimist .section-title { color: var(--opt-primary); }
 .session-page.role-pessimist .section-title { color: var(--pes-primary); }
 
-.section-content { font-size: 0.85rem; line-height: 1.7; white-space: pre-wrap; }
+.section-content { font-size: 0.85rem; line-height: 1.7; }
+.section-content strong { color: var(--text-bright); }
+.section-content em { font-style: italic; color: var(--text-dim); }
+.section-content code { background: rgba(255,255,255,0.08); padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.8rem; }
+.section-content .md-li { padding-left: 1.2em; margin: 0.3em 0; }
+.section-content .md-quote { border-left: 2px solid var(--border-panel); padding-left: 0.8em; margin: 0.5em 0; color: var(--text-dim); font-style: italic; }
 
 .input-area {
     position: relative; z-index: 1;

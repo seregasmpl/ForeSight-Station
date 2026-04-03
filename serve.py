@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import html
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
@@ -19,38 +20,83 @@ from agents import Agent
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("forsight")
 
+# Patterns that indicate prompt injection attempts
+_INJECTION_PATTERNS = [
+    r"игнорируй.{0,30}инструкц",
+    r"забудь.{0,20}(кто ты|роль|инструкц)",
+    r"притворись.{0,30}(другой|не|без)",
+    r"ты теперь",
+    r"новая роль",
+    r"действуй без ограничений",
+    r"без цензуры",
+    r"покажи.{0,20}(промт|инструкц|систем)",
+    r"ignore.{0,30}(all.{0,10})?previous.{0,10}instructions?",
+    r"ignore.{0,30}instructions?",
+    r"you are now",
+    r"pretend (you are|to be)",
+    r"act as.{0,20}(different|another|without)",
+    r"jailbreak",
+    r"dan mode",
+    r"developer mode",
+    r"system prompt",
+    r"disregard",
+]
+
+import re as _re
+_INJECTION_RE = _re.compile(
+    "|".join(_INJECTION_PATTERNS),
+    _re.IGNORECASE,
+)
+
+
+def _check_injection(text: str) -> bool:
+    """Returns True if the text looks like a prompt injection attempt."""
+    return bool(_INJECTION_RE.search(text))
+
 # --- Global state ---
 session_manager = SessionManager()
 collections: dict[str, IndexedCollection] = {}
 retrievers: dict[str, HybridRetriever] = {}
 
+# Locks for concurrent access safety
+_retriever_lock = asyncio.Lock()   # embed model is not thread-safe
+_session_lock = asyncio.Lock()     # session mutations + disk writes
+
 
 async def process_question(code: str, question: str) -> AgentResponse:
     session = session_manager.get_session(code)
     if session is None:
-        raise HTTPException(404, "Session not found")
+        raise HTTPException(404, "НЕ НАЙДЕН")
 
     retriever = retrievers.get(session.role)
     if retriever is None:
         raise HTTPException(500, f"Collection '{session.role}' not indexed")
 
-    chunks = retriever.search(
-        query=question,
-        k=config.MMR_TOP_K,
-        used_chunk_ids=session.used_chunk_ids,
-    )
+    # Serialize retriever access (SentenceTransformer.encode not thread-safe)
+    # and run off event loop so heartbeats / static files keep working
+    async with _retriever_lock:
+        chunks = await asyncio.to_thread(
+            retriever.search,
+            query=question,
+            k=config.MMR_TOP_K,
+            used_chunk_ids=session.used_chunk_ids,
+        )
     chunk_ids = [c.id for c in chunks]
 
     history_summary = session_manager.get_history_summary(code)
+    prior_messages = session_manager.get_chat_messages(code)
     agent = Agent(role=session.role)
     answer = await agent.ask(
         question=question,
         topic=session.topic,
         chunks=chunks,
         history_summary=history_summary,
+        prior_messages=prior_messages,
     )
 
-    session_manager.add_question(code, question, answer, chunk_ids)
+    # Serialize session state mutations + atomic disk write
+    async with _session_lock:
+        session_manager.add_question(code, question, answer, chunk_ids)
     return answer
 
 
@@ -108,6 +154,11 @@ async def admin_page():
     return FileResponse(os.path.join(static_dir, "admin.html"))
 
 
+@app.get("/viewer")
+async def viewer_page():
+    return FileResponse(os.path.join(static_dir, "viewer.html"))
+
+
 @app.post("/api/admin/login")
 async def admin_login(body: AdminLogin):
     if body.pin != config.ADMIN_PIN:
@@ -121,14 +172,20 @@ async def create_all_sessions():
     return {"codes": codes}
 
 
+@app.post("/api/sessions/reset-all")
+async def reset_all_sessions():
+    codes = session_manager.create_all_sessions(force=True)
+    return {"codes": codes}
+
+
 @app.post("/api/sessions/join")
 async def join_session(body: SessionJoin):
     session = session_manager.join_session(body.code)
     if session is None:
         existing = session_manager.get_session(body.code)
         if existing is None:
-            raise HTTPException(404, "Session not found")
-        raise HTTPException(409, "Session already active")
+            raise HTTPException(404, "НЕ НАЙДЕН")
+        raise HTTPException(409, "УЖЕ НА БОРТУ")
     return {
         "code": session.code,
         "topic": session.topic,
@@ -164,7 +221,7 @@ async def get_all_sessions():
 async def get_session_history(code: str):
     session = session_manager.get_session(code)
     if session is None:
-        raise HTTPException(404, "Session not found")
+        raise HTTPException(404, "НЕ НАЙДЕН")
     return {
         "code": session.code,
         "topic": session.topic,
@@ -184,13 +241,18 @@ async def get_session_history(code: str):
 async def ask(body: AskRequest):
     session = session_manager.get_session(body.code)
     if session is None:
-        raise HTTPException(404, "Session not found")
+        raise HTTPException(404, "НЕ НАЙДЕН")
     if session.status != "active":
         raise HTTPException(403, "Session not active")
+    if not body.question.strip():
+        raise HTTPException(400, "Вопрос не может быть пустым")
+    if _check_injection(body.question):
+        logger.warning("Injection attempt blocked from session %s: %.80s", body.code, body.question)
+        raise HTTPException(400, "Вопрос не по теме форсайт-сессии")
 
     answer = await process_question(body.code, body.question)
     return {
-        "question": body.question,
+        "question": html.escape(body.question),
         "answer": answer.model_dump(),
     }
 

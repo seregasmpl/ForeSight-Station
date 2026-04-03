@@ -42,9 +42,26 @@ def build_system_prompt(
     )
 
 
+_SECTION_HEADER_RE = re.compile(
+    r"^(суть позиции|ключевые аргументы|что произойдёт к 2100|главные риски|"
+    r"что сказать на дебатах|вопросы оппонентам|новость из 2100 года)\s*\n",
+    re.IGNORECASE,
+)
+
+
+def _strip_echo_header(text: str) -> str:
+    """LLM sometimes repeats section titles as the first lines of content; strip all of them."""
+    prev = None
+    while prev != text:
+        prev = text
+        text = _SECTION_HEADER_RE.sub("", text, count=1).strip()
+    return text
+
+
 def parse_response(raw: str) -> AgentResponse:
-    sections = re.split(r"##\s*\d+\.\s*", raw)
-    sections = [s.strip() for s in sections if s.strip()]
+    parts = re.split(r"##\s*\d+\.\s*", raw)
+    # parts[0] is always pre-header content (empty or LLM preamble) — skip it
+    sections = [_strip_echo_header(s) for s in parts[1:] if s.strip()]
 
     if len(sections) >= 7:
         return AgentResponse(
@@ -67,7 +84,16 @@ def parse_response(raw: str) -> AgentResponse:
     )
 
 
-async def call_openrouter(system_prompt: str, user_message: str) -> str:
+async def call_openrouter(
+    system_prompt: str,
+    user_message: str,
+    prior_messages: list[dict] | None = None,
+) -> str:
+    messages = [{"role": "system", "content": system_prompt}]
+    if prior_messages:
+        messages.extend(prior_messages)
+    messages.append({"role": "user", "content": user_message})
+
     async with httpx.AsyncClient() as client:
         response = await client.post(
             config.OPENROUTER_BASE_URL,
@@ -77,10 +103,7 @@ async def call_openrouter(system_prompt: str, user_message: str) -> str:
             },
             json={
                 "model": config.OPENROUTER_MODEL,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message},
-                ],
+                "messages": messages,
                 "temperature": config.LLM_TEMPERATURE,
             },
             timeout=config.LLM_TIMEOUT,
@@ -100,6 +123,7 @@ class Agent:
         topic: str,
         chunks: list[Chunk],
         history_summary: str,
+        prior_messages: list[dict] | None = None,
     ) -> AgentResponse:
         focus_lens = random.choice(config.FOCUS_LENSES)
         system_prompt = build_system_prompt(
@@ -109,5 +133,5 @@ class Agent:
             focus_lens=focus_lens,
             history_summary=history_summary,
         )
-        raw = await call_openrouter(system_prompt, question)
+        raw = await call_openrouter(system_prompt, question, prior_messages=prior_messages)
         return parse_response(raw)

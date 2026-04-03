@@ -37,6 +37,7 @@ class SessionData(BaseModel):
     last_heartbeat: datetime | None = None
     questions: list[QuestionRecord] = Field(default_factory=list)
     used_chunk_ids: set[int] = Field(default_factory=set)
+    chat_messages: list[dict] = Field(default_factory=list)  # LLM message history
 
     model_config = {"arbitrary_types_allowed": True}
 

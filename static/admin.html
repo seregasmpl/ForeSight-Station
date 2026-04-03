@@ -27,8 +27,9 @@
     <div id="dashboard" class="dashboard" style="display:none">
         <header class="admin-header">
             <h1>ЦЕНТР УПРАВЛЕНИЯ ПОЛЁТАМИ</h1>
-            <button class="retro-btn" onclick="createAllSessions()">СОЗДАТЬ ВСЕ СЕССИИ</button>
-            <button class="retro-btn" onclick="refreshDashboard()">ОБНОВИТЬ</button>
+            <button class="retro-btn" onclick="createAllSessions()">СОЗДАТЬ СЕССИИ</button>
+            <button class="retro-btn" onclick="resetAllSessions()" style="border-color:var(--accent);color:var(--accent)">СБРОСИТЬ ВСЕ</button>
+            <span style="font-size:0.65rem;color:var(--text-dim)">Авто-обновление каждые 5 сек</span>
         </header>
 
         <div class="sessions-grid" id="sessions-grid"></div>

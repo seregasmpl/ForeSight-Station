@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.playwright-mcp/
+.claude/
+data/sessions.json
+data/sessions.json.tmp
+debug_raw.txt
+*.png
+docs/superpowers/
+*.bak
+conftest_backup.py

@@ -1,10 +1,15 @@
 import pytest
 from datetime import datetime, timedelta
 from sessions import SessionManager
+import os
 
 
 @pytest.fixture
 def sm():
+    # Clean persisted state to avoid loading active sessions from disk
+    sessions_file = os.path.join(os.path.dirname(__file__), "..", "data", "sessions.json")
+    if os.path.exists(sessions_file):
+        os.remove(sessions_file)
     return SessionManager()
 
 

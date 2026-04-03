@@ -41,9 +41,9 @@ async function joinSession() {
         window.location.href = "/session";
     } catch (err) {
         if (err.message.includes("409")) {
-            showError("error-msg", "ЭТОТ ЭКИПАЖ УЖЕ НА БОРТУ");
+            showError("error-msg", "УЖЕ НА БОРТУ");
         } else if (err.message.includes("404")) {
-            showError("error-msg", "ПОЗЫВНОЙ НЕ НАЙДЕН");
+            showError("error-msg", "НЕ НАЙДЕН");
         } else {
             showError("error-msg", err.message);
         }
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // --- Session Page ---
-function initSessionPage() {
+async function initSessionPage() {
     const raw = sessionStorage.getItem("session");
     if (!raw) {
         window.location.href = "/";
@@ -97,6 +97,34 @@ function initSessionPage() {
 
     heartbeatInterval = setInterval(sendHeartbeat, 30000);
     sendHeartbeat();
+
+    await loadChatHistory();
+}
+
+async function loadChatHistory() {
+    try {
+        const data = await api("GET", `/api/sessions/${currentSession.code}/history`);
+        if (data.questions.length === 0) return;
+
+        const welcome = document.getElementById("welcome-msg");
+        if (welcome) welcome.remove();
+
+        const chatArea = document.getElementById("chat-area");
+        for (const q of data.questions) {
+            const userBubble = document.createElement("div");
+            userBubble.className = "chat-msg chat-msg-user";
+            userBubble.innerHTML = `<div class="bubble-user">${escapeHtml(q.question)}</div>`;
+            chatArea.appendChild(userBubble);
+
+            const aiBubble = document.createElement("div");
+            aiBubble.className = "chat-msg chat-msg-ai";
+            aiBubble.innerHTML = `<div class="bubble-ai">${renderAnswer(q.answer)}</div>`;
+            chatArea.appendChild(aiBubble);
+        }
+
+        // Scroll to bottom without animation (restoring state)
+        chatArea.scrollTop = chatArea.scrollHeight;
+    } catch (err) { }
 }
 
 async function sendHeartbeat() {
@@ -128,7 +156,7 @@ function renderAnswer(answer) {
         if (!text) continue;
         html += `<div class="section-block">
             <div class="section-title">${SECTION_TITLES[i]}</div>
-            <div class="section-content">${escapeHtml(text)}</div>
+            <div class="section-content">${renderMarkdown(text)}</div>
         </div>`;
     }
     return html;
@@ -138,6 +166,31 @@ function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
+}
+
+function renderMarkdown(text) {
+    let html = escapeHtml(text);
+    // Bold: **text** or __text__
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    // Italic: *text* or _text_
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Inline code
+    html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+    // Headers (strip ##, make bold)
+    html = html.replace(/^#{1,3}\s+(.+)$/gm, '<strong>$1</strong>');
+    // Numbered lists: 1. item
+    html = html.replace(/^\d+\.\s+(.+)$/gm, '<div class="md-li">$&</div>');
+    // Bullet lists: - item or * item
+    html = html.replace(/^[\-\*]\s+(.+)$/gm, '<div class="md-li">&bull; $1</div>');
+    // Quotes: > text
+    html = html.replace(/^&gt;\s+(.+)$/gm, '<div class="md-quote">$1</div>');
+    // Line breaks
+    html = html.replace(/\n/g, '<br>');
+    // Clean up double <br> around block elements
+    html = html.replace(/<br><div/g, '<div');
+    html = html.replace(/<\/div><br>/g, '</div>');
+    return html;
 }
 
 async function askQuestion() {
@@ -152,9 +205,21 @@ async function askQuestion() {
     input.value = "";
     input.disabled = true;
     document.getElementById("send-btn").disabled = true;
-    document.getElementById("loading-indicator").style.display = "block";
 
     const chatArea = document.getElementById("chat-area");
+
+    // User bubble — appears immediately on the right
+    const userBubble = document.createElement("div");
+    userBubble.className = "chat-msg chat-msg-user";
+    userBubble.innerHTML = `<div class="bubble-user">${escapeHtml(question)}</div>`;
+    chatArea.appendChild(userBubble);
+
+    // Thinking indicator — left side, while waiting
+    const thinkingBubble = document.createElement("div");
+    thinkingBubble.className = "chat-msg chat-msg-ai";
+    thinkingBubble.innerHTML = `<div class="bubble-thinking"><span class="blink">БОРТОВОЙ КОМПЬЮТЕР ОБРАБАТЫВАЕТ ЗАПРОС...</span></div>`;
+    chatArea.appendChild(thinkingBubble);
+    thinkingBubble.scrollIntoView({ behavior: "smooth" });
 
     try {
         const data = await api("POST", "/api/ask", {
@@ -162,34 +227,24 @@ async function askQuestion() {
             question: question,
         });
 
-        const block = document.createElement("div");
-        block.className = "qa-block";
-        block.innerHTML = `
-            <div class="qa-question">
-                <span class="prompt-symbol">&gt;</span> ${escapeHtml(question)}
-            </div>
-            <div class="qa-answer">
-                ${renderAnswer(data.answer)}
-            </div>
-        `;
-        chatArea.appendChild(block);
-        block.scrollIntoView({ behavior: "smooth" });
+        thinkingBubble.remove();
+
+        const aiBubble = document.createElement("div");
+        aiBubble.className = "chat-msg chat-msg-ai";
+        aiBubble.innerHTML = `<div class="bubble-ai">${renderAnswer(data.answer)}</div>`;
+        chatArea.appendChild(aiBubble);
+        aiBubble.scrollIntoView({ behavior: "smooth" });
     } catch (err) {
-        const errBlock = document.createElement("div");
-        errBlock.className = "qa-block";
-        errBlock.innerHTML = `
-            <div class="qa-question">
-                <span class="prompt-symbol">&gt;</span> ${escapeHtml(question)}
-            </div>
-            <div class="qa-answer" style="color: var(--accent);">
-                ОШИБКА СВЯЗИ: ${escapeHtml(err.message)}
-            </div>
-        `;
-        chatArea.appendChild(errBlock);
+        thinkingBubble.remove();
+
+        const errBubble = document.createElement("div");
+        errBubble.className = "chat-msg chat-msg-ai";
+        errBubble.innerHTML = `<div class="bubble-ai" style="color: var(--accent);">ОШИБКА СВЯЗИ: ${escapeHtml(err.message)}</div>`;
+        chatArea.appendChild(errBubble);
+        errBubble.scrollIntoView({ behavior: "smooth" });
     } finally {
         input.disabled = false;
         document.getElementById("send-btn").disabled = false;
-        document.getElementById("loading-indicator").style.display = "none";
         input.focus();
     }
 }
@@ -202,6 +257,8 @@ async function adminLogin() {
         document.getElementById("pin-overlay").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
         refreshDashboard();
+        // Auto-refresh every 5 seconds
+        setInterval(refreshDashboard, 5000);
     } catch (err) {
         showError("pin-error", "НЕВЕРНЫЙ КОД ДОСТУПА");
     }
@@ -210,6 +267,16 @@ async function adminLogin() {
 async function createAllSessions() {
     try {
         await api("POST", "/api/sessions/create-all");
+        refreshDashboard();
+    } catch (err) {
+        alert("Ошибка: " + err.message);
+    }
+}
+
+async function resetAllSessions() {
+    if (!confirm("ВНИМАНИЕ: Все активные сессии будут сброшены. Продолжить?")) return;
+    try {
+        await api("POST", "/api/sessions/reset-all");
         refreshDashboard();
     } catch (err) {
         alert("Ошибка: " + err.message);
