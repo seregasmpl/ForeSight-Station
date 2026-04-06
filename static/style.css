@@ -18,6 +18,7 @@
     --text-dim: #7a8ba0;
     --text-bright: #ffffff;
     --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --font-text: 'Inter', 'Segoe UI', system-ui, sans-serif;
     --radius: 12px;
 }
 
@@ -256,8 +257,8 @@ body {
     background: var(--bg-panel);
     border: 1px solid var(--border-panel);
     border-radius: var(--radius) var(--radius) 4px var(--radius);
-    padding: 0.7rem 1.2rem;
-    font-size: 0.9rem;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
 }
 .session-page.role-optimist .bubble-user {
     border-color: var(--opt-dim);
@@ -287,7 +288,7 @@ body {
     color: var(--text-dim);
 }
 
-.answer-text { font-size: 0.85rem; line-height: 1.8; }
+.answer-text { font-family: var(--font-text); font-size: 1rem; line-height: 1.9; }
 .answer-text strong { color: var(--text-bright); }
 .answer-text em { font-style: italic; color: var(--text-dim); }
 .answer-text .md-p { margin-bottom: 0.8em; }
