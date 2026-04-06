@@ -94,23 +94,33 @@ async def call_openrouter(
         messages.extend(prior_messages)
     messages.append({"role": "user", "content": user_message})
 
+    import asyncio as _asyncio
+
     async with httpx.AsyncClient() as client:
-        response = await client.post(
-            config.OPENROUTER_BASE_URL,
-            headers={
-                "Authorization": f"Bearer {config.OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": config.OPENROUTER_MODEL,
-                "messages": messages,
-                "temperature": config.LLM_TEMPERATURE,
-            },
-            timeout=config.LLM_TIMEOUT,
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+        last_err = None
+        for attempt in range(3):
+            try:
+                response = await client.post(
+                    config.OPENROUTER_BASE_URL,
+                    headers={
+                        "Authorization": f"Bearer {config.OPENROUTER_API_KEY}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "model": config.OPENROUTER_MODEL,
+                        "messages": messages,
+                        "temperature": config.LLM_TEMPERATURE,
+                    },
+                    timeout=config.LLM_TIMEOUT,
+                )
+                response.raise_for_status()
+                data = response.json()
+                return data["choices"][0]["message"]["content"]
+            except (httpx.ConnectError, httpx.ReadTimeout) as e:
+                last_err = e
+                if attempt < 2:
+                    await _asyncio.sleep(2)
+        raise last_err
 
 
 class Agent:
