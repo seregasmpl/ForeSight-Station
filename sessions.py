@@ -18,10 +18,10 @@ _SESSIONS_FILE = os.path.join(os.path.dirname(__file__), "data", "sessions.json"
 
 def _answer_to_text(answer: AgentResponse) -> str:
     parts = []
-    for i, (key, title) in enumerate(zip(_SECTION_KEYS, _SECTION_TITLES), 1):
+    for key in _SECTION_KEYS:
         val = getattr(answer, key, "")
         if val:
-            parts.append(f"## {i}. {title}\n{val}")
+            parts.append(val)
     return "\n\n".join(parts)
 
 
@@ -150,7 +150,9 @@ class SessionManager:
             return ""
         summaries = []
         for q in session.questions:
-            summaries.append(f"Вопрос: {q.question}\nТезис ответа: {q.answer.position}")
+            # Truncate answer to first 200 chars for a brief summary
+            brief = q.answer.position[:200].rsplit(" ", 1)[0] + "..." if len(q.answer.position) > 200 else q.answer.position
+            summaries.append(f"Вопрос: {q.question}\nКратко: {brief}")
         return "\n\n".join(summaries)
 
     def get_chat_messages(self, code: str) -> list[dict]:
