@@ -287,24 +287,23 @@ body {
     color: var(--text-dim);
 }
 
+.answer-text { font-size: 0.85rem; line-height: 1.8; }
+.answer-text strong { color: var(--text-bright); }
+.answer-text em { font-style: italic; color: var(--text-dim); }
+.answer-text .md-p { margin-bottom: 0.8em; }
+.answer-text .md-p:last-child { margin-bottom: 0; }
+
+/* Legacy section styles kept for history compatibility */
 .section-block { margin-bottom: 1.5rem; }
 .section-block:last-child { margin-bottom: 0; }
-
 .section-title {
     font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em;
     text-transform: uppercase; margin-bottom: 0.6rem;
     padding-bottom: 0.3rem; border-bottom: 1px solid var(--border-panel);
 }
-
 .session-page.role-optimist .section-title { color: var(--opt-primary); }
 .session-page.role-pessimist .section-title { color: var(--pes-primary); }
-
 .section-content { font-size: 0.85rem; line-height: 1.7; }
-.section-content strong { color: var(--text-bright); }
-.section-content em { font-style: italic; color: var(--text-dim); }
-.section-content code { background: rgba(255,255,255,0.08); padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.8rem; }
-.section-content .md-li { padding-left: 1.2em; margin: 0.3em 0; }
-.section-content .md-quote { border-left: 2px solid var(--border-panel); padding-left: 0.8em; margin: 0.5em 0; color: var(--text-dim); font-style: italic; }
 
 .input-area {
     position: relative; z-index: 1;

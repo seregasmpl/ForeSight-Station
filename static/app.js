@@ -134,32 +134,14 @@ async function sendHeartbeat() {
     } catch (err) { }
 }
 
-const SECTION_TITLES = [
-    "СУТЬ ПОЗИЦИИ",
-    "КЛЮЧЕВЫЕ АРГУМЕНТЫ",
-    "ЧТО ПРОИЗОЙДЁТ К 2100",
-    "ГЛАВНЫЕ РИСКИ",
-    "ЧТО СКАЗАТЬ НА ДЕБАТАХ",
-    "ВОПРОСЫ ОППОНЕНТАМ",
-    "НОВОСТЬ ИЗ 2100 ГОДА",
-];
-
-const SECTION_KEYS = [
-    "position", "arguments", "predictions", "risks",
-    "debate_speech", "opponent_questions", "news_2100",
-];
-
 function renderAnswer(answer) {
-    let html = "";
-    for (let i = 0; i < SECTION_KEYS.length; i++) {
-        const text = answer[SECTION_KEYS[i]];
-        if (!text) continue;
-        html += `<div class="section-block">
-            <div class="section-title">${SECTION_TITLES[i]}</div>
-            <div class="section-content">${renderMarkdown(text)}</div>
-        </div>`;
-    }
-    return html;
+    // Combine all non-empty fields into one flowing text
+    const parts = [
+        answer.position, answer.arguments, answer.predictions,
+        answer.risks, answer.debate_speech, answer.opponent_questions,
+        answer.news_2100,
+    ].filter(Boolean);
+    return `<div class="answer-text">${renderMarkdown(parts.join("\n\n"))}</div>`;
 }
 
 function escapeHtml(text) {
@@ -185,11 +167,13 @@ function renderMarkdown(text) {
     html = html.replace(/^[\-\*]\s+(.+)$/gm, '<div class="md-li">&bull; $1</div>');
     // Quotes: > text
     html = html.replace(/^&gt;\s+(.+)$/gm, '<div class="md-quote">$1</div>');
-    // Line breaks
-    html = html.replace(/\n/g, '<br>');
-    // Clean up double <br> around block elements
-    html = html.replace(/<br><div/g, '<div');
-    html = html.replace(/<\/div><br>/g, '</div>');
+    // Paragraphs: split on double newlines
+    html = html.split(/\n{2,}/).map(p => {
+        p = p.trim();
+        if (!p) return "";
+        if (p.startsWith("<div")) return p;  // already a block element
+        return `<div class="md-p">${p.replace(/\n/g, '<br>')}</div>`;
+    }).join("");
     return html;
 }
 
