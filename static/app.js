@@ -152,10 +152,10 @@ function escapeHtml(text) {
 
 function renderMarkdown(text) {
     let html = escapeHtml(text);
-    // Bold: **text** or __text__
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
-    // Italic: *text* or _text_
+    // Bold: **text** (can span across words)
+    html = html.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__([\s\S]+?)__/g, '<strong>$1</strong>');
+    // Italic: *text*
     html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
     // Inline code
     html = html.replace(/`(.+?)`/g, '<code>$1</code>');
@@ -163,15 +163,19 @@ function renderMarkdown(text) {
     html = html.replace(/^#{1,3}\s+(.+)$/gm, '<strong>$1</strong>');
     // Numbered lists: 1. item
     html = html.replace(/^\d+\.\s+(.+)$/gm, '<div class="md-li">$&</div>');
-    // Bullet lists: - item or * item
-    html = html.replace(/^[\-\*]\s+(.+)$/gm, '<div class="md-li">&bull; $1</div>');
-    // Quotes: > text
+    // Bullet lists: - item or * item or • item
+    html = html.replace(/^[\-\*•]\s+(.+)$/gm, '<div class="md-li">&bull; $1</div>');
+    // Quotes: > text or » text
     html = html.replace(/^&gt;\s+(.+)$/gm, '<div class="md-quote">$1</div>');
+    // Russian block quotes: «...» on its own line — style as quote
+    html = html.replace(/^(«[^»]+»)$/gm, '<div class="md-quote">$1</div>');
+    // Em-dash citations: — Author (at end of quote)
+    html = html.replace(/\n\s*—\s*(.+)$/gm, '<br><span class="md-cite">— $1</span>');
     // Paragraphs: split on double newlines
     html = html.split(/\n{2,}/).map(p => {
         p = p.trim();
         if (!p) return "";
-        if (p.startsWith("<div")) return p;  // already a block element
+        if (p.startsWith("<div") || p.startsWith("<span")) return p;
         return `<div class="md-p">${p.replace(/\n/g, '<br>')}</div>`;
     }).join("");
     return html;

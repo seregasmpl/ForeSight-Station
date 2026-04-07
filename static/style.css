@@ -293,6 +293,9 @@ body {
 .answer-text em { font-style: italic; color: var(--text-dim); }
 .answer-text .md-p { margin-bottom: 0.8em; }
 .answer-text .md-p:last-child { margin-bottom: 0; }
+.answer-text .md-quote { border-left: 3px solid var(--border-panel); padding-left: 1em; margin: 0.6em 0; color: var(--text-dim); font-style: italic; }
+.answer-text .md-cite { font-size: 0.85em; color: var(--text-dim); }
+.answer-text .md-li { padding-left: 1.2em; margin: 0.3em 0; }
 
 /* Legacy section styles kept for history compatibility */
 .section-block { margin-bottom: 1.5rem; }
