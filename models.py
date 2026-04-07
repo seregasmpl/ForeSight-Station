@@ -9,6 +9,7 @@ class Chunk(BaseModel):
     text: str
     source_file: str
     collection: str  # "optimist" | "pessimist"
+    author: str = ""  # author + title extracted from file header
 
 
 class AgentResponse(BaseModel):

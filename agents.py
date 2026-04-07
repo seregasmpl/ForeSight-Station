@@ -29,7 +29,8 @@ def build_system_prompt(
 
     chunks_text = ""
     for i, chunk in enumerate(chunks, 1):
-        chunks_text += f"[Фрагмент {i} — {chunk.source_file}]\n{chunk.text}\n\n"
+        source_label = chunk.author if chunk.author else chunk.source_file
+        chunks_text += f"[Фрагмент {i} — {source_label}]\n{chunk.text}\n\n"
 
     if not history_summary:
         history_summary = "Это первый вопрос команды."
