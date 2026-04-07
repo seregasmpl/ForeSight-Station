@@ -152,6 +152,13 @@ function escapeHtml(text) {
 
 function renderMarkdown(text) {
     let html = escapeHtml(text);
+    // Strip LaTeX dollar signs: $t=0$ → t=0, $10^{-29}$ → 10⁻²⁹
+    html = html.replace(/\$([^$]+)\$/g, (_, expr) => {
+        return expr.replace(/\^{?(-?\d+)}?/g, (__, exp) => {
+            const sup = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+            return [...exp].map(c => sup[c] || c).join('');
+        }).replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/[{}]/g, '');
+    });
     // Bold: **text** (can span across words)
     html = html.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/__([\s\S]+?)__/g, '<strong>$1</strong>');
