@@ -258,7 +258,7 @@ class IndexedCollection:
         """Save pre-built embeddings and chunks to disk for fast startup."""
         import json
         np.save(_cache_path(directory, "embeddings.npy"), self.embeddings)
-        chunks_data = [{"id": c.id, "text": c.text, "source_file": c.source_file, "collection": c.collection} for c in self.chunks]
+        chunks_data = [{"id": c.id, "text": c.text, "source_file": c.source_file, "collection": c.collection, "author": c.author} for c in self.chunks]
         with open(_cache_path(directory, "chunks.json"), "w", encoding="utf-8") as f:
             json.dump(chunks_data, f, ensure_ascii=False)
 
